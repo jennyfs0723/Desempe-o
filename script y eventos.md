@@ -422,7 +422,7 @@ BEGIN
     SET e.tiempo_estimado_entrega = DATE_ADD(NOW(), INTERVAL e.duracion_estimada_hora HOUR)
     WHERE e.estado_actual = 'en transito';
 
--- Registrar ejecución en auditoría
+-- Registrar en auditoría
     INSERT INTO auditoria_eventos (nombre_evento, descripcion, fecha_ejecucion)
     VALUES ('EVT_ActualizarEstimacionesEntrega',
             'Se actualizaron las estimaciones de entrega para envíos en transito',
@@ -446,19 +446,17 @@ STARTS CURRENT_TIMESTAMP
 COMMENT 'Verifica diariamente la documentacion de vehiculos'
 DO
 BEGIN
--- SOAT vencido
+
     UPDATE vehiculo v
     SET v.estado_operativo = 'SOAT vencido'
     WHERE v.fecha_soat < CURDATE()
       AND v.fecha_tecnomecanica >= CURDATE();
 
--- Tecnomecánica vencida
     UPDATE vehiculo v
     SET v.estado_operativo = 'Tecnomecanica vencida'
     WHERE v.fecha_tecnomecanica < CURDATE()
       AND v.fecha_soat >= CURDATE();
 
--- Ambas vencidas
     UPDATE vehiculo v
     SET v.estado_operativo = 'SOAT y Tecnomecanica vencidos'
     WHERE v.fecha_soat < CURDATE()
@@ -494,7 +492,7 @@ BEGIN
     WHERE e.estado_actual = 'en transito'
       AND v.estado_operativo = 'activo';
 
-    -- Registrar la asignación de rutas en auditoría
+    -- Registrar en auditoría
     INSERT INTO auditoria_eventos (nombre_evento, descripcion, fecha_ejecucion)
     VALUES ('EVT_OptimizarRutasDiarias',
             'Optimizacion diaria de rutas y asignacion de envios',
@@ -520,7 +518,7 @@ STARTS CURRENT_TIMESTAMP
 COMMENT 'Reporte de consumo de combustible por vehículo'
 DO
 BEGIN
--- Registrar en auditoría un resumen del consumo por vehículo
+-- Registrar en auditoría 
     INSERT INTO auditoria_eventos (nombre_evento, descripcion, fecha_ejecucion)
     SELECT 'EVT_GenerarReporteCombustion' AS nombre_evento,
            CONCAT('Vehículo ', c.vehiculo,
@@ -554,7 +552,6 @@ STARTS CURRENT_TIMESTAMP
 COMMENT 'Monitorea desviaciones de ruta en envíos'
 DO
 BEGIN
--- monitorea los envios en transito 
     UPDATE envios e
     SET e.estado_actual = 'desviación de ruta'
     WHERE e.estado_actual = 'en transito'
